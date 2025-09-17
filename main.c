@@ -128,10 +128,10 @@ void Ucon() {
                 number2 = atoi(tempnum2);
                 if (number2) {
                     found = 0;
-                    for (i = 0; i < id; i++) if(contacts[i].number == number2) {
+                    for (int j = 0; j < id; j++) if(j != i && contacts[j].number == number2) {
                         found = 1; break;
                     }
-                    if (!found || found && contacts[i].number == number) {
+                    if (!found) {
                         strcpy(contacts[i].name, tempname);
                         contacts[i].number = number2;
                     } else printf("\nA contact with the same number exists\n");
