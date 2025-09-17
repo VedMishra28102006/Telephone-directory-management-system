@@ -32,8 +32,12 @@ void menu() {
         else if (choice == 3) Ucon();
         else if (choice == 4) Dcon();
         else if (choice == 5) Allcon();
-        else if (choice == 6) exit(0);
-        else { printf("Invalid input\n\n"); menu(); }
+        else if (choice == 6) {
+            FILE *fptr = fopen("contacts.dat", "wb");
+            fwrite(contacts, sizeof(struct contact), id, fptr);
+            fclose(fptr);
+            exit(0);
+        } else { printf("Invalid input\n\n"); menu(); }
     } else { printf("Invalid input\n\n"); menu(); }
 }
 
@@ -47,22 +51,29 @@ void Ccon() {
     if (c != 'n') menu();
     else {
         char tempnum[20];
+        char tempname[31];
         int number;
         printf("\nEnter contact name:");
-        scanf(" %30[^\n]", contacts[id].name);
-        printf("Enter contact number:");
-        scanf(" %20[^\n]", tempnum);
-        number = atoi(tempnum);
-        if (number) {
-            contacts[id].number = number;
-            int found = 0;
-            for (int i=0; i < id; i++)
-                if (contacts[i].number == contacts[id].number) {
-                    found = 1; break;
+        scanf(" %30[^\n]", tempname);
+        if (strcmp(tempname, "") == 0) printf("\nContact name can't be empty\n\n");
+        else {
+            printf("Enter contact number:");
+            scanf(" %20[^\n]", tempnum);
+            number = atoi(tempnum);
+            if (number) {
+                int found = 0;
+                for (int i=0; i < id; i++)
+                    if (contacts[i].number == number) {
+                        found = 1; break;
+                    }
+                if (found) printf("\nA contact with the same number exists\n\n");
+                else {
+                    strcpy(contacts[id].name, tempname);
+                    contacts[id].number = number;
+                    id++;
                 }
-            if (found) printf("\nA contact with the same number exists\n\n");
-            else id++;
-        } else printf("\nInvalid number\n");
+            } else printf("\nInvalid number\n");
+        }
         Ccon();
     }
 }
@@ -76,7 +87,7 @@ void Vcon() {
         printf("\nNo contacts to retrieve\n\n");
         menu();
     } else {
-        char name[30];
+        char name[31];
         printf("\nEnter contact name:");
         scanf(" %30[^\n]", name);
         int found = 0;
@@ -116,9 +127,14 @@ void Ucon() {
                 scanf(" %20[^\n]", tempnum2);
                 number2 = atoi(tempnum2);
                 if (number2) {
-                    strcpy(contacts[i].name, tempname);
-                    contacts[i].number = number2;
-                    
+                    found = 0;
+                    for (i = 0; i < id; i++) if(contacts[i].number == number2) {
+                        found = 1; break;
+                    }
+                    if (!found || found && contacts[i].number == number) {
+                        strcpy(contacts[i].name, tempname);
+                        contacts[i].number = number2;
+                    } else printf("\nA contact with the same number exists\n");
                 } else printf("\nInvalid number\n");
             }
         } else printf("\nInvalid number\n");
@@ -157,8 +173,8 @@ void Allcon() {
         printf("\nNo contacts to retrieve\n\n");
         menu();
     } else {
-        for (int i=0; i < id; i++)
-            for (int j=i+1; j < id-1; j++)
+        for (int i=0; i < id-1; i++)
+            for (int j=i+1; j < id; j++)
                 if (strcmp(contacts[i].name, contacts[j].name) > 0) {
                     struct contact temp;
                     temp = contacts[i];
@@ -173,6 +189,11 @@ void Allcon() {
 }
 
 int main() {
+    FILE *fptr = fopen("contacts.dat", "rb");
+    if (fptr != NULL) {
+        id = fread(contacts, sizeof(struct contact), MAX_SIZE, fptr);
+        fclose(fptr);
+    }
     menu();
     return 0;
 }
